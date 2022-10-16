@@ -3,7 +3,7 @@ version: '3.7'
 services:
   proxy:
     image: nginx:alpine
-    container_name: proxy
+    container_name: proxy-lit
     ports:
       - '80:80'
     volumes:
@@ -16,7 +16,7 @@ services:
       context: api
       target: development-build-stage
       dockerfile: Dockerfile
-    container_name: server
+    container_name: server-lit
     ports:
       - '3000:3000'
     volumes:
@@ -31,11 +31,13 @@ services:
       - pg
   pg:
     image: bitnami/postgresql:11-debian-9
-    container_name: pg
+    container_name: pg-lit
     environment:
       POSTGRESQL_USERNAME: root
       POSTGRESQL_PASSWORD: password
       POSTGRESQL_DATABASE: dev
+    volumes:
+      - '~/Data/Lit_Review_Data:/bitnami/postgresql'
     ports:
       - '5432:5432'
     networks:
@@ -46,7 +48,7 @@ services:
       context: client
       target: development-build-stage
       dockerfile: Dockerfile
-    container_name: blog_client
+    container_name: client-lit
     ports:
       - '8000:8000'
     volumes:

@@ -36,6 +36,7 @@ services:
       POSTGRESQL_USERNAME: root
       POSTGRESQL_PASSWORD: password
       POSTGRESQL_DATABASE: dev
+      PGDATA: C:\Users\ML-1\Documents\Postgresql
     ports:
       - '5432:5432'
     networks:
