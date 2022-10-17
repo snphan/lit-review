@@ -16,6 +16,7 @@ import errorMiddleware from '@middlewares/error.middleware';
 import { logger, responseLogger, errorLogger } from '@utils/logger';
 import { create } from 'domain';
 import { createAuthorsLoader } from './utils/authorsLoader';
+import { createTagsLoader } from './utils/tagsLoader';
 
 class App {
   public app: express.Application;
@@ -77,22 +78,18 @@ class App {
           ? ApolloServerPluginLandingPageProductionDefault({ footer: false })
           : ApolloServerPluginLandingPageLocalDefault({ footer: false }),
       ],
-      context: ({ req, res }: any) => ({
-        req,
-        res,
-        authorsLoader: createAuthorsLoader()
-      }),
-      // context: async ({ req }) => {
-      //   try {
-      //     const user = await authMiddleware(req);
-      //     return { 
-      //       user: user, 
-      //       // authorsLoader: createAuthorsLoader() 
-      //     };
-      //   } catch (error) {
-      //     throw new Error(error);
-      //   }
-      // },
+      context: async ({ req }) => {
+        try {
+          const user = await authMiddleware(req);
+          return { 
+            user: user, 
+            authorsLoader: createAuthorsLoader(),
+            tagsLoader: createTagsLoader(),
+          };
+        } catch (error) {
+          throw new Error(error);
+        }
+      },
       formatResponse: (response, request) => {
         responseLogger(request);
 

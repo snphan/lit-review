@@ -1,11 +1,11 @@
 import { InputType, Field } from 'type-graphql';
-import { Article } from '@typedefs/article.type';
+import { ArticleEntity } from '@/entities/article.entity';
 
 // The DTO Is the data transfer object, we fill in the fields for the data
 // and it can be used to create objects in our table.
 
 @InputType()
-export class CreateArticleDto implements Partial<Article> {
+export class CreateArticleDto implements Partial<ArticleEntity> {
   @Field()
   title: string;
 

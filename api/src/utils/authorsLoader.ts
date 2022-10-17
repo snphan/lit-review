@@ -25,7 +25,6 @@ const batchAuthors = async (bookIds: number[]) => {
     __author__: { id: 1, name: 'author1' }
   }
   */
-  console.log(authorBooks);
   authorBooks.forEach(ab => {
     if (ab.bookId in bookIdToAuthors) {
       bookIdToAuthors[ab.bookId].push((ab as any).__author__);
@@ -33,6 +32,7 @@ const batchAuthors = async (bookIds: number[]) => {
       bookIdToAuthors[ab.bookId] = [(ab as any).__author__];
     }
   });
+
 
   return bookIds.map(bookId => bookIdToAuthors[bookId]);
 };

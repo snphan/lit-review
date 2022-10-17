@@ -3,12 +3,16 @@ import validateEnv from '@utils/validateEnv';
 
 import { authResolver } from '@resolvers/auth.resolver';
 import { userResolver } from '@resolvers/users.resolver';
-import { articleResolver } from '@resolvers/article.resolver' 
-import { tagResolver } from '@resolvers/tag.resolver';
 import { AuthorBookResolver } from './resolvers/authorbook.resolver';
+import { ArticleTagResolver } from './resolvers/articletag.resolver';
 
 validateEnv();
 
-const app = new App([authResolver, userResolver, articleResolver, tagResolver, AuthorBookResolver]);
+const app = new App([
+    authResolver,
+	userResolver,
+	AuthorBookResolver,
+    ArticleTagResolver
+]);
 
 app.listen();

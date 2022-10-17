@@ -25,8 +25,7 @@ export class Book extends BaseEntity {
 
   @Field(() => [Author])
   async authors(@Ctx() { authorsLoader }: any): Promise<Author[]> {
-    console.log(authorsLoader);
     return authorsLoader.load(this.id);
-    // return authorsLoader
   }
+
 }
