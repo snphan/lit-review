@@ -14,6 +14,8 @@ import { dbConnection } from '@databases';
 import { authMiddleware, authChecker } from '@middlewares/auth.middleware';
 import errorMiddleware from '@middlewares/error.middleware';
 import { logger, responseLogger, errorLogger } from '@utils/logger';
+import { create } from 'domain';
+import { createAuthorsLoader } from './utils/authorsLoader';
 
 class App {
   public app: express.Application;
@@ -75,14 +77,22 @@ class App {
           ? ApolloServerPluginLandingPageProductionDefault({ footer: false })
           : ApolloServerPluginLandingPageLocalDefault({ footer: false }),
       ],
-      context: async ({ req }) => {
-        try {
-          const user = await authMiddleware(req);
-          return { user };
-        } catch (error) {
-          throw new Error(error);
-        }
-      },
+      context: ({ req, res }: any) => ({
+        req,
+        res,
+        authorsLoader: createAuthorsLoader()
+      }),
+      // context: async ({ req }) => {
+      //   try {
+      //     const user = await authMiddleware(req);
+      //     return { 
+      //       user: user, 
+      //       // authorsLoader: createAuthorsLoader() 
+      //     };
+      //   } catch (error) {
+      //     throw new Error(error);
+      //   }
+      // },
       formatResponse: (response, request) => {
         responseLogger(request);
 
@@ -95,6 +105,7 @@ class App {
       },
       
     });
+
 
     await apolloServer.start();
     apolloServer.applyMiddleware({ app: this.app, cors: ORIGIN, path: '/graphql' });

@@ -13,6 +13,7 @@ EXPOSE 3000
 FROM common-build-stage as development-build-stage
 
 ENV NODE_ENV development
+ENV DEBUG express:*
 
 CMD ["npm", "run", "dev"]
 
