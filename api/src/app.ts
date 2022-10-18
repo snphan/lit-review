@@ -8,7 +8,7 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import { buildSchema } from 'type-graphql';
-import { createConnection } from 'typeorm';
+import { Connection, createConnection } from 'typeorm';
 import { NODE_ENV, PORT, ORIGIN, CREDENTIALS } from '@config';
 import { dbConnection } from '@databases';
 import { authMiddleware, authChecker } from '@middlewares/auth.middleware';
@@ -23,6 +23,7 @@ class App {
   public app: express.Application;
   public env: string;
   public port: string | number;
+  public connection: Connection
 
   constructor(resolvers) {
     this.app = express();
@@ -49,8 +50,8 @@ class App {
     return this.app;
   }
 
-  private connectToDatabase() {
-    createConnection(dbConnection);
+  private async connectToDatabase() {
+    this.connection = await createConnection(dbConnection);
   }
 
   private initializeMiddlewares() {
@@ -86,7 +87,8 @@ class App {
             user: user, 
             authorsLoader: createAuthorsLoader(),
             tagsLoader: createTagsLoader(),
-            articleLoader: createArticlesLoader()
+            articleLoader: createArticlesLoader(),
+            connection: this.connection
           };
         } catch (error) {
           throw new Error(error);
