@@ -36,3 +36,22 @@
     transform: rotate(360deg);
   }
 }
+
+.article-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.article-row > * {
+    margin: 1em;
+}
+
+.tag {
+    padding: 0.6em;
+    padding-left: 0.6em;
+    margin: 0.15em;
+    background-color: #282c34;
+    color: white;
+    border-radius: 1.5em;
+    font-size: 0.6em;
+}
