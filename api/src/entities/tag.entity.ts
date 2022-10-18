@@ -1,4 +1,4 @@
-import { BaseEntity, PrimaryGeneratedColumn, Column, Entity, OneToMany, JoinColumn } from "typeorm";
+import { BaseEntity, PrimaryGeneratedColumn, Column, Entity, OneToMany, JoinColumn, Unique } from "typeorm";
 import { IsNotEmpty } from "class-validator";
 import { Tag } from "@interfaces/tag.interface";
 import { ArticleTag } from "./articletag.entity";
@@ -14,6 +14,7 @@ export class TagEntity extends BaseEntity {
     @Column()
     @Field()
     @IsNotEmpty()
+    @Unique(['name'])
     name: string;
 
     @OneToMany(() => ArticleTag, at => at.article)

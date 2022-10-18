@@ -17,6 +17,7 @@ import { logger, responseLogger, errorLogger } from '@utils/logger';
 import { create } from 'domain';
 import { createAuthorsLoader } from './utils/authorsLoader';
 import { createTagsLoader } from './utils/tagsLoader';
+import { createArticlesLoader } from './utils/articleLoader';
 
 class App {
   public app: express.Application;
@@ -58,7 +59,7 @@ class App {
       this.app.use(helmet());
     }
 
-    this.app.use(cors({ origin: ['https://studio.apollographql.com'], credentials: CREDENTIALS }));
+    this.app.use(cors({ origin: ['https://studio.apollographql.com', 'http://localhost:8000'], credentials: CREDENTIALS }));
     this.app.use(compression());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
@@ -85,6 +86,7 @@ class App {
             user: user, 
             authorsLoader: createAuthorsLoader(),
             tagsLoader: createTagsLoader(),
+            articleLoader: createArticlesLoader()
           };
         } catch (error) {
           throw new Error(error);
