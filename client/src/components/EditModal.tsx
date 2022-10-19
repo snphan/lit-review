@@ -19,14 +19,22 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData }:
         </Modal.Header>
         <Modal.Body>
           <Form.Label>Title</Form.Label>
-          <Form.Control type="text" defaultValue={editData.title} />
+          <Form.Control type="text" defaultValue={editData.title}
+            onChange={e => setEditData({ ...editData, title: e.target.value })}
+          />
           <Form.Label>Author</Form.Label>
-          <Form.Control type="text" defaultValue={editData.firstAuthor} />
+          <Form.Control type="text" defaultValue={editData.firstAuthor}
+            onChange={e => setEditData({ ...editData, firstAuthor: e.target.value })}
+          />
           <Form.Label>Year</Form.Label>
-          <Form.Control type="text" defaultValue={editData.year} />
+          <Form.Control type="text" defaultValue={editData.year}
+            onChange={e => setEditData({ ...editData, year: e.target.value })}
+          />
           <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
             <Form.Label>Summary</Form.Label>
-            <Form.Control as="textarea" rows={3} defaultValue={editData.summary} />
+            <Form.Control as="textarea" rows={3} defaultValue={editData.summary}
+              onChange={e => setEditData({ ...editData, summary: e.target.value })}
+            />
           </Form.Group>
           <Form.Label><strong>Tags</strong></Form.Label>
           <br />
@@ -54,7 +62,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData }:
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
-              {tagNames ? allTags
+              {tagNames ? allTags.tags
                 .filter((tag: TagData) => !tagNames.includes(tag.name))
                 .map((filtTag: TagData) =>
                   <Dropdown.Item key={`${editData.id}_${filtTag.name}`} onClick={() => {

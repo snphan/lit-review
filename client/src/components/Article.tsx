@@ -3,12 +3,13 @@ import { Tag, TagData } from './Tag';
 import { Button } from 'react-bootstrap';
 
 export interface ArticleData {
-  id: number;
+  id: string;
   title: string;
   firstAuthor: string;
   summary: string;
   year: number;
   tags: TagData[];
+  inputTags: number[] | null;
 }
 
 
@@ -17,7 +18,6 @@ export function Article(props: any) {
 
   return (
     <tr onClick={() => {
-      console.log(article);
       props.setEditData(article);
       props.handleShow();
     }}>

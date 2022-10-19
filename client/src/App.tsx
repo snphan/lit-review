@@ -1,55 +1,44 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { ApolloProvider, ApolloClient, InMemoryCache, gql, useMutation, useQuery } from '@apollo/client';
 import { useState, useEffect } from 'react';
 import { Article, ArticleData } from './components/Article';
 import Table from 'react-bootstrap/Table';
 import { EditModal } from './components/EditModal'
 import { TagData } from './components/Tag';
 
-function App() {
-  const client = new ApolloClient({
-    uri: 'http://localhost:3000/graphql',
-    cache: new InMemoryCache({
-      addTypename: false
-    }),
-  });
-
-
-  const [show, setShow] = useState(false);
-
-  const [data, setData] = useState<ArticleData[]>([]);
-  const [editData, setEditData] = useState<ArticleData | Object>({});
-  const [allTags, setAllTags] = useState<TagData[]>([]);
-
-  const getData = () => {
-    client.query({
-      query: gql`
-        query getArticles{
-          articles {
-            id
-            firstAuthor
-            title
-            year
-            summary
-            tags {
-              id
-              name
-            }
-          }
-        }
-      `
-    }).then((result) => {
-      console.log(result);
-      setData(result.data?.articles ? result.data.articles : []);
+const GET_ALL_ARTICLES = gql`
+  query getArticles{
+    articles {
+      id
+      firstAuthor
+      title
+      year
+      summary
+      tags {
+        id
+        name
+      }
     }
-    );
   }
+`
 
-  const getAllTags = () => {
-    client.query({
-      query: gql`
+const UPDATE_ARTICLE = gql`
+  mutation updateArticle($updateData: CreateArticleDto!, $articleId: Float!) {
+    updateArticle(articleData: $updateData, articleId: $articleId) {
+      id
+      title
+      firstAuthor
+      year
+      tags {
+        id
+        name
+      }
+    }
+  }
+`
+const GET_TAGS = gql`
         query getTags{
           tags {
             id
@@ -57,22 +46,61 @@ function App() {
           }
         }
       `
-    }).then((result) => {
-      setAllTags(result.data?.tags ? result.data.tags : []);
+
+
+function App({ client }: any) {
+
+  const [show, setShow] = useState(false);
+
+  // const [articleData, setData] = useState<ArticleData[]>([]);
+  const [editData, setEditData] = useState<ArticleData | null>(null);
+  const [updateArticle, {
+    data: updateData,
+    loading: updateLoading,
+    error: updateError }] = useMutation(UPDATE_ARTICLE, {});
+
+  const {
+    loading: allArticlesLoading,
+    data: articleData,
+    error: allArticlesError,
+    refetch: refetchAllArticles } = useQuery(GET_ALL_ARTICLES);
+
+
+  const {
+    loading: allTagsLoading,
+    data: allTags,
+    error: allTagsError,
+    refetch: refetchAllTags
+  } = useQuery(GET_TAGS);
+  // TODO: Fix noob set data for all tags.
+
+  const handleClose = () => {
+    // Update the database here
+    if (editData) {
+      const newEditData = editData
+      let tagIds;
+      if (newEditData?.tags) {
+        tagIds = newEditData.tags.map((tag: TagData) => tag.id);
+      } else {
+        tagIds = null;
+      }
+      const { tags, id, ...updateData } = newEditData;
+
+      updateData['inputTags'] = tagIds;
+
+      updateArticle({
+        variables: {
+          updateData: updateData,
+          articleId: parseFloat(newEditData.id)
+        }
+      }).then(() => refetchAllArticles());
     }
-    );
-  }
+    setShow(false);
+  };
 
-
-  useEffect(() => {
-    getData();
-    getAllTags();
-  }, []);
-
-  const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const articleItems = data.map((article) =>
+  const articleItems = articleData?.articles?.map((article: ArticleData) =>
     <Article
       key={article.id}
       article={article}
@@ -82,7 +110,7 @@ function App() {
   );
   return (
     <div className="">
-      <h1>Hi World!</h1>
+      <h1>Lit Review Tracking App</h1>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -98,13 +126,15 @@ function App() {
           {articleItems}
         </tbody>
       </Table>
-      <EditModal
-        editData={editData}
-        handleClose={handleClose}
-        show={show}
-        allTags={allTags}
-        setEditData={setEditData}
-      />
+      {editData ?
+        <EditModal
+          editData={editData}
+          handleClose={handleClose}
+          show={show}
+          allTags={allTags}
+          setEditData={setEditData}
+        />
+        : null}
 
     </div>
   );
