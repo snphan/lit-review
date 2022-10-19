@@ -26,7 +26,6 @@ export class ArticleTagResolver {
     @Arg('articleData') articleData: CreateArticleDto
   ) {
     const changedArticle: ArticleEntity = await ArticleEntity.findOne({ where: { id: articleId } });
-    console.log(changedArticle);
     const { inputTags, ...data } = articleData;
 
     await connection.manager.transaction(async (manager) => {
@@ -50,7 +49,6 @@ export class ArticleTagResolver {
   @Mutation(() => ArticleEntity)
   async addArticle(@Ctx() { connection }: any, @Arg("articleData") articleData: CreateArticleDto): Promise<ArticleEntity> {
     // Transaction in case crash halfway. Commit at the end
-    console.log(connection);
     let newArticle: ArticleEntity;
     await connection.manager.transaction(async (manager) => {
       let { inputTags, ...data } = articleData;
@@ -70,7 +68,6 @@ export class ArticleTagResolver {
   @Mutation(() => TagEntity)
   async addTag(@Arg("tagData") tagData: TagDto): Promise<TagEntity> {
     const findTag: TagEntity = await TagEntity.findOne({ where: { name: tagData.name } });
-    console.log(findTag);
     if (findTag) throw new HttpException(409, `This tag: ${tagData.name} already exists.`);
 
     const newTag: TagEntity = await TagEntity.create(tagData).save();
@@ -87,7 +84,7 @@ export class ArticleTagResolver {
 
   @Query(() => [ArticleEntity])
   async articles() {
-    return ArticleEntity.find();
+    return (await ArticleEntity.find()).sort((a, b) => a.id - b.id);
   }
 
   @Query(() => [TagEntity])
