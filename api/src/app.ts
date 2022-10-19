@@ -8,7 +8,7 @@ import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import { buildSchema } from 'type-graphql';
-import { createConnection } from 'typeorm';
+import { Connection, createConnection } from 'typeorm';
 import { NODE_ENV, PORT, ORIGIN, CREDENTIALS } from '@config';
 import { dbConnection } from '@databases';
 import { authMiddleware, authChecker } from '@middlewares/auth.middleware';
@@ -17,11 +17,13 @@ import { logger, responseLogger, errorLogger } from '@utils/logger';
 import { create } from 'domain';
 import { createAuthorsLoader } from './utils/authorsLoader';
 import { createTagsLoader } from './utils/tagsLoader';
+import { createArticlesLoader } from './utils/articleLoader';
 
 class App {
   public app: express.Application;
   public env: string;
   public port: string | number;
+  public connection: Connection
 
   constructor(resolvers) {
     this.app = express();
@@ -48,8 +50,8 @@ class App {
     return this.app;
   }
 
-  private connectToDatabase() {
-    createConnection(dbConnection);
+  private async connectToDatabase() {
+    this.connection = await createConnection(dbConnection);
   }
 
   private initializeMiddlewares() {
@@ -58,7 +60,7 @@ class App {
       this.app.use(helmet());
     }
 
-    this.app.use(cors({ origin: ['https://studio.apollographql.com'], credentials: CREDENTIALS }));
+    this.app.use(cors({ origin: ['https://studio.apollographql.com', 'http://localhost:8000'], credentials: CREDENTIALS }));
     this.app.use(compression());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
@@ -85,6 +87,8 @@ class App {
             user: user, 
             authorsLoader: createAuthorsLoader(),
             tagsLoader: createTagsLoader(),
+            articleLoader: createArticlesLoader(),
+            connection: this.connection
           };
         } catch (error) {
           throw new Error(error);

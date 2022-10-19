@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, Unique, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 // import { Article } from '@interfaces/article.interface';
-import { Ctx, Field, ID, ObjectType } from 'type-graphql';
+import { Ctx, Field, ID, Int, ObjectType } from 'type-graphql';
 import { TagEntity } from './tag.entity';
 import { ArticleTag } from './articletag.entity';
 
@@ -42,8 +42,11 @@ export class ArticleEntity extends BaseEntity {
   @OneToMany(() => ArticleTag, at => at.tag)
   tagConnection: Promise<ArticleTag[]>
 
-  @Field(() => [TagEntity])
+  @Field(() => [TagEntity], {nullable: true})
   async tags(@Ctx() { tagsLoader }: any): Promise<TagEntity[]> {
     return tagsLoader.load(this.id);
   }
+
+  @Field(() => [Int], {nullable: true})
+  inputTags: number[];
 }
