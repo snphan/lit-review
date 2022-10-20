@@ -28,7 +28,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData }:
           />
           <Form.Label>Year</Form.Label>
           <Form.Control type="text" defaultValue={editData.year}
-            onChange={e => setEditData({ ...editData, year: e.target.value })}
+            onChange={e => setEditData({ ...editData, year: parseFloat(e.target.value) })}
           />
           <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
             <Form.Label>Summary</Form.Label>
@@ -41,10 +41,10 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData }:
           <br />
           <div className="container">
             {editData.tags?.map((tag: TagData) =>
-              <Badge key={tag.name} bg="secondary" className="m-1">
+              <Badge key={tag.name} bg="secondary" className="mx-1">
                 {tag.name}
                 <Button
-                  className="p-1 m-1"
+                  className="m-1 tag-remove"
                   variant="danger"
                   onClick={() => {
                     const newTags = tags.filter((oldTag: TagData) => oldTag.name !== tag.name);
@@ -57,8 +57,8 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData }:
           <br />
           <br />
           <Dropdown>
-            <Dropdown.Toggle variant="success" id="dropdown-basic">
-              Dropdown Button
+            <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+              Select Tags
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
