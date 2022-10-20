@@ -2,7 +2,7 @@ import { ArticleData } from "./Article";
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Badge from 'react-bootstrap/Badge';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import { TagData } from "./Tag";
 import Dropdown from 'react-bootstrap/Dropdown';
@@ -20,11 +20,22 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
   const { tags } = editData;
   const tagNames = tags ? tags.map((tag: TagData) => tag.name) : [];
   const [delCount, setDelCount] = useState<number>(0);
+  const [savedText, setSavedText] = useState<string>("");
 
-  const handleKeyDown = (event: any) => {
+  useEffect(() => {
+    const sleep = async (ms: number) => {
+      await new Promise(r => setTimeout(r, ms));
+    }
+    sleep(2000).then(() =>
+      setSavedText("")
+    );
+  }, [savedText])
+
+  const handleKeyDown = async (event: any) => {
     let charCode = String.fromCharCode(event.which).toLowerCase();
     if ((event.ctrlKey || event.metaKey) && charCode === 's') {
       event.preventDefault();
+      setSavedText("Saved...");
       handleClose(true);
     } else if ((event.ctrlKey || event.metaKey) && charCode === 'c') {
       // alert("CTRL+C Pressed");
@@ -102,6 +113,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
           </Dropdown>
         </Modal.Body>
         <Modal.Footer>
+          <span style={{ color: "green" }}>{savedText}</span>
           {editData.id ?
             <Button variant="danger" onClick={() => {
               if (delCount == 0) {
@@ -127,7 +139,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
           <Button variant="secondary" onClick={() => { setShow(false); setDelCount(0); }}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleClose}>
+          <Button variant="primary" onClick={() => handleClose(false)}>
             Save Changes
           </Button>
         </Modal.Footer>
