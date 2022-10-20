@@ -39,14 +39,14 @@ export class ArticleEntity extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => ArticleTag, at => at.tag)
+  @OneToMany(() => ArticleTag, at => at.tag, { onDelete: "CASCADE" })
   tagConnection: Promise<ArticleTag[]>
 
-  @Field(() => [TagEntity], {nullable: true})
+  @Field(() => [TagEntity], { nullable: true })
   async tags(@Ctx() { tagsLoader }: any): Promise<TagEntity[]> {
     return tagsLoader.load(this.id);
   }
 
-  @Field(() => [Int], {nullable: true})
+  @Field(() => [Int], { nullable: true })
   inputTags: number[];
 }
