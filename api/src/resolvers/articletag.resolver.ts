@@ -5,7 +5,7 @@ import { TagEntity } from "@/entities/tag.entity";
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import { TagDto } from "@dtos/tag.dto";
 import { HttpException } from "@/exceptions/HttpException";
-import { Connection, In, TransactionAlreadyStartedError } from "typeorm";
+import { Connection, In, Like, TransactionAlreadyStartedError } from "typeorm";
 
 
 
@@ -91,6 +91,15 @@ export class ArticleTagResolver {
     const result = await articleLoader.loadMany(findTag.map((tag: TagEntity) => tag.id));
     const intersectionResult = result.reduce((a: ArticleEntity[], c: ArticleEntity[]) => a.filter(i => (c.map((elem) => elem.id)).includes(i.id)));
     return intersectionResult;
+  }
+
+  @Query(() => [ArticleEntity])
+  async articlesFindBySummary(@Arg("summary") summary: string) {
+    return ArticleEntity.find({
+      where: {
+        summary: Like(`%${summary}%`),
+      }
+    });
   }
 
   @Query(() => [ArticleEntity])

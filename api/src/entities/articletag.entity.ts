@@ -6,17 +6,17 @@ import { TagEntity } from "./tag.entity";
 
 @Entity()
 export class ArticleTag extends BaseEntity {
-    @PrimaryColumn()
-    articleId: number;
+  @PrimaryColumn()
+  articleId: number;
 
-    @PrimaryColumn()
-    tagId: number;
+  @PrimaryColumn()
+  tagId: number;
 
-    @ManyToOne(() => ArticleEntity, article => article.tagConnection, { primary: true})
-    @JoinColumn({name: "articleId"})
-    article: Promise<ArticleEntity>
+  @ManyToOne(() => ArticleEntity, article => article.tagConnection, { primary: true, onDelete: "CASCADE" })
+  @JoinColumn({ name: "articleId" })
+  article: Promise<ArticleEntity>
 
-    @ManyToOne(() => TagEntity, tag => tag.articleConnection, { primary: true})
-    @JoinColumn({ name: "tagId" })
-    tag: Promise<TagEntity>
+  @ManyToOne(() => TagEntity, tag => tag.articleConnection, { primary: true })
+  @JoinColumn({ name: "tagId" })
+  tag: Promise<TagEntity>
 }

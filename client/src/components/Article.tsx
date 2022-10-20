@@ -25,7 +25,7 @@ export function Article(props: any) {
       <td>{article.title}</td>
       <td>{article.firstAuthor}</td>
       <td>{article.year}</td>
-      <td>{article.summary}</td>
+      <td dangerouslySetInnerHTML={{ __html: article.summary }}></td>
       <td>
         {article.tags?.map((tag: TagData) =>
           <Tag key={`Tag${tag.id}`} {...tag}></Tag>

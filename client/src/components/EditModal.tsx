@@ -21,6 +21,18 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
   const tagNames = tags ? tags.map((tag: TagData) => tag.name) : [];
   const [delCount, setDelCount] = useState<number>(0);
 
+  const handleKeyDown = (event: any) => {
+    let charCode = String.fromCharCode(event.which).toLowerCase();
+    if ((event.ctrlKey || event.metaKey) && charCode === 's') {
+      event.preventDefault();
+      handleClose(true);
+    } else if ((event.ctrlKey || event.metaKey) && charCode === 'c') {
+      // alert("CTRL+C Pressed");
+    } else if ((event.ctrlKey || event.metaKey) && charCode === 'v') {
+      // alert("CTRL+V Pressed");
+    }
+  }
+
   const [deleteArticle, {
     data: delArticleData,
     loading: delArticleLoading,
@@ -29,11 +41,11 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
 
   return (
     <>
-      <Modal show={show} onHide={() => { setShow(false); setDelCount(0); }}>
+      <Modal show={show} size="xl">
         <Modal.Header closeButton>
           <Modal.Title>{editData.title}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body onKeyDown={handleKeyDown} contentEditable={true}>
           <Form.Label>Title</Form.Label>
           <Form.Control type="text" defaultValue={editData.title}
             onChange={e => setEditData({ ...editData, title: e.target.value })}

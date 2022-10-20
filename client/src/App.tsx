@@ -89,9 +89,23 @@ mutation createTag($tagData: TagDto!) {
 }
 `
 
+const GET_ARTICLE_BY_SUMMARY = gql`
+query articleBySummary($summary: String!) {
+  articlesFindBySummary(summary: $summary) {
+    id
+    title
+    year
+    summary
+    firstAuthor
+    tags {
+      id
+      name
+    }
+  }
+}
+`
 
 function App({ client }: any) {
-
   const [show, setShow] = useState(false);
   const [filtTags, setFiltTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState<string>("");
@@ -138,6 +152,12 @@ function App({ client }: any) {
     refetch: refetchAllTags
   } = useQuery(GET_TAGS);
 
+  // const {
+  //   loading: summaryArticlesLoading,
+  //   data: summartyArticlesData,
+  //   error: summaryArticlesError,
+  //   refetch: refetchSummaryArticles
+  // } = useQuery(GET_ARTICLE_BY_SUMMARY);
 
   useEffect(() => {
     refetchFilterArticle({ tagNames: filtTags });
@@ -146,7 +166,7 @@ function App({ client }: any) {
 
 
 
-  const handleClose = () => {
+  const handleClose = (isShow = false) => {
     // Update the database here
     if (editData) {
       if (editData.id) {
@@ -179,7 +199,7 @@ function App({ client }: any) {
         }).then(() => refetchAllArticles());
       }
     }
-    setShow(false);
+    setShow(isShow);
   };
 
   const handleShow = () => setShow(true);
