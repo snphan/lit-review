@@ -10,6 +10,22 @@ import { TagData } from './components/Tag';
 import { Button } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 
+
+const GET_ARTICLES_BY_TAGS = gql`
+query getArticleByTag($tagNames: [String!]!) {
+  filterByTags(tagNames: $tagNames) {
+    id
+    title
+    year
+    summary
+    tags {
+      id
+      name
+    }
+  }
+}
+`
+
 const GET_ALL_ARTICLES = gql`
   query getArticles{
     articles {
@@ -68,6 +84,7 @@ const CREATE_ARTICLE = gql`
 function App({ client }: any) {
 
   const [show, setShow] = useState(false);
+  const [filtTags, setFiltTags] = useState<string[]>([]);
 
   // const [articleData, setData] = useState<ArticleData[]>([]);
   const [editData, setEditData] = useState<ArticleData | null>(null);
@@ -89,12 +106,27 @@ function App({ client }: any) {
     refetch: refetchAllArticles } = useQuery(GET_ALL_ARTICLES);
 
   const {
+    loading: filterArticlesLoading,
+    data: filterArticleData,
+    error: filterArticleError,
+    refetch: refetchFilterArticle } = useQuery(GET_ARTICLES_BY_TAGS, {
+      variables: {
+        tagNames: filtTags
+      }
+    })
+
+  const {
     loading: allTagsLoading,
     data: allTags,
     error: allTagsError,
     refetch: refetchAllTags
   } = useQuery(GET_TAGS);
 
+
+  useEffect(() => {
+    refetchFilterArticle({ tagNames: filtTags });
+    console.log(filterArticleData);
+  }, [filtTags]);
 
 
 
@@ -136,7 +168,7 @@ function App({ client }: any) {
 
   const handleShow = () => setShow(true);
 
-  const articleItems = articleData?.articles?.map((article: ArticleData) =>
+  const articleItems = (filtTags.length > 0 ? filterArticleData?.filterByTags : articleData?.articles)?.map((article: ArticleData) =>
     <Article
       key={article.id}
       article={article}
@@ -179,13 +211,19 @@ function App({ client }: any) {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
+
+                  <Dropdown.Item onClick={() => { setFiltTags([]) }}>❌</Dropdown.Item>
                   {allTags?.tags
                     .map((tag: TagData) =>
-                      <Dropdown.Item key={`$filter_${tag.name}`} onClick={(e) => {
-                        console.log(tag);
-                      }}>{tag.name}</Dropdown.Item>
+                      <Dropdown.Item key={`$filter_${tag.name}`} onClick={() => {
+                        if (filtTags.includes(tag.name)) {
+                          let removeInd = filtTags.indexOf(tag.name);
+                          setFiltTags([...filtTags.slice(0, removeInd), ...filtTags.slice(removeInd + 1)])
+                        } else {
+                          setFiltTags([...filtTags, tag.name]);
+                        }
+                      }}>{filtTags.includes(tag.name) ? "✅" : ""} {tag.name}</Dropdown.Item>
                     )}
-
                 </Dropdown.Menu>
               </Dropdown>
 
