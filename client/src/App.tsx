@@ -9,7 +9,7 @@ import { EditModal } from './components/EditModal'
 import { TagData } from './components/Tag';
 import { Button } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
-
+import Form from 'react-bootstrap/Form';
 
 const GET_ARTICLES_BY_TAGS = gql`
 query getArticleByTag($tagNames: [String!]!) {
@@ -80,11 +80,21 @@ const CREATE_ARTICLE = gql`
   }
 `
 
+const CREATE_TAG = gql`
+mutation createTag($tagData: TagDto!) {
+  addTag(tagData: $tagData) {
+    id
+    name
+  }
+}
+`
+
 
 function App({ client }: any) {
 
   const [show, setShow] = useState(false);
   const [filtTags, setFiltTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState<string>("");
 
   // const [articleData, setData] = useState<ArticleData[]>([]);
   const [editData, setEditData] = useState<ArticleData | null>(null);
@@ -98,6 +108,12 @@ function App({ client }: any) {
     loading: createLoading,
     error: createError
   }] = useMutation(CREATE_ARTICLE);
+
+  const [createTag, {
+    data: createTagData,
+    loading: tagLoading,
+    error: tagError
+  }] = useMutation(CREATE_TAG);
 
   const {
     loading: allArticlesLoading,
@@ -180,6 +196,22 @@ function App({ client }: any) {
     <div className="">
       <nav className="d-flex justify-content-between fixed-top navbar navbar-dark bg-light">
         <h1>Lit Review Tracking App</h1>
+        <div className="d-flex">
+          <Form.Control id="tag-input" type="input" placeholder="New Tag" onChange={(e) => setNewTag(e.target.value)} />
+          <Button variant='primary' onClick={() => {
+            createTag({
+              variables: {
+                tagData: { name: newTag }
+              }
+            }).then(() => {
+              setNewTag('');
+              const input = document.getElementById('tag-input') as HTMLInputElement;
+              input.value = "";
+              refetchAllTags();
+            })
+          }}>+</Button>
+        </div>
+
         <Button onClick={() => {
           handleShow();
           // Empty ArticleData
