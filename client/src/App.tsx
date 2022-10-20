@@ -273,6 +273,9 @@ function App({ client }: any) {
           show={show}
           allTags={allTags}
           setEditData={setEditData}
+          setShow={setShow}
+          refetchFilterArticle={refetchFilterArticle}
+          refetchAllArticles={refetchAllArticles}
         />
         : null}
 

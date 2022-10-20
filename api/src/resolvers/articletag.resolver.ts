@@ -66,6 +66,12 @@ export class ArticleTagResolver {
     return newArticle;
   }
 
+  @Mutation(() => Boolean)
+  async deleteArticle(@Arg("articleId") articleId: number): Promise<boolean> {
+    await ArticleEntity.delete(articleId);
+    return true;
+  }
+
   @Mutation(() => TagEntity)
   async addTag(@Arg("tagData") tagData: TagDto): Promise<TagEntity> {
     const findTag: TagEntity = await TagEntity.findOne({ where: { name: tagData.name } });

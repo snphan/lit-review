@@ -7,13 +7,29 @@ import Form from 'react-bootstrap/Form';
 import { TagData } from "./Tag";
 import Dropdown from 'react-bootstrap/Dropdown';
 import { getAllJSDocTagsOfKind } from "typescript";
+import { gql, useMutation } from "@apollo/client";
 
-export function EditModal({ editData, show, handleClose, allTags, setEditData }: any) {
+const DELETE_ARTICLE = gql`
+  mutation deleteArticle($articleId: Float!) {
+    deleteArticle(articleId: $articleId) 
+  }
+`
+
+export function EditModal({ editData, show, handleClose, allTags, setEditData, setShow,
+  refetchAllArticles, refetchFilterArticle }: any) {
   const { tags } = editData;
   const tagNames = tags ? tags.map((tag: TagData) => tag.name) : [];
+  const [delCount, setDelCount] = useState<number>(0);
+
+  const [deleteArticle, {
+    data: delArticleData,
+    loading: delArticleLoading,
+    error: delArticleError
+  }] = useMutation(DELETE_ARTICLE);
+
   return (
     <>
-      <Modal show={show} onHide={handleClose}>
+      <Modal show={show} onHide={() => { setShow(false); setDelCount(0); }}>
         <Modal.Header closeButton>
           <Modal.Title>{editData.title}</Modal.Title>
         </Modal.Header>
@@ -74,7 +90,29 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData }:
           </Dropdown>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          {editData.id ?
+            <Button variant="danger" onClick={() => {
+              if (delCount == 0) {
+                alert("If you are sure click again.");
+                setDelCount(delCount + 1);
+              } else {
+                setShow(false);
+                deleteArticle({
+                  variables: {
+                    articleId: parseFloat(editData.id)
+                  }
+                }).then(() => {
+                  refetchAllArticles();
+                  refetchFilterArticle();
+                });
+                setDelCount(0);
+              }
+            }}
+            >
+              🗑️
+            </Button>
+            : null}
+          <Button variant="secondary" onClick={() => { setShow(false); setDelCount(0); }}>
             Close
           </Button>
           <Button variant="primary" onClick={handleClose}>
