@@ -55,3 +55,14 @@
     border-radius: 1.5em;
     font-size: 0.6em;
 }
+
+.fixed-top {
+    top: 0;
+    right: 0;
+    left: 0;
+}
+
+.tag-remove {
+    padding: 5px 0px!important;
+    line-height: 0!important;
+}

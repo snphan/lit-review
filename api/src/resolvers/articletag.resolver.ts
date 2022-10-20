@@ -5,7 +5,8 @@ import { TagEntity } from "@/entities/tag.entity";
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import { TagDto } from "@dtos/tag.dto";
 import { HttpException } from "@/exceptions/HttpException";
-import { Connection, TransactionAlreadyStartedError } from "typeorm";
+import { Connection, In, TransactionAlreadyStartedError } from "typeorm";
+
 
 
 @Resolver()
@@ -75,11 +76,15 @@ export class ArticleTagResolver {
   }
 
   @Query(() => [ArticleEntity])
-  async getArticlesByTag(@Ctx() { articleLoader }: any, @Arg("tagName") tagName: string): Promise<ArticleEntity[]> {
-    const findTag = await TagEntity.findOne({ where: { name: tagName } });
+  async filterByTags(@Ctx() { articleLoader }: any, @Arg("tagNames", () => [String]) tagNames: string[]): Promise<ArticleEntity[]> {
+    const findTag = await TagEntity.find({ where: { name: In(tagNames) } });
 
-    if (!findTag) throw new HttpException(404, `Tag ${tagName} Cannot be found`);
-    return articleLoader.load(findTag.id);
+
+    if (!findTag) throw new HttpException(404, `Tag ${tagNames} Cannot be found`);
+    console.log(findTag.map((tag: TagEntity) => tag.id));
+    const result = await articleLoader.loadMany(findTag.map((tag: TagEntity) => tag.id));
+    const intersectionResult = result.reduce((a: ArticleEntity[], c: ArticleEntity[]) => a.filter(i => (c.map((elem) => elem.id)).includes(i.id)));
+    return intersectionResult;
   }
 
   @Query(() => [ArticleEntity])
