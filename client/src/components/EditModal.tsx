@@ -126,7 +126,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
 
   return (
     <>
-      <Modal show={show} size="xl">
+      <Modal show={show} size="xl" onHide={() => setShow(false)} backdrop="static" keyboard={false}>
         <Modal.Header closeButton>
           <Modal.Title>{editData.title}</Modal.Title>
         </Modal.Header>
