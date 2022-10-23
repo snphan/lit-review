@@ -103,6 +103,8 @@ export class ArticleTagResolver {
         }
       })
 
+
+    console.log("nontagfilterarticles", nonTagFilterArticles);
     const result = await articleLoader.loadMany(findTag.map((tag: TagEntity) => tag.id));
     // Contains the result from tags + all other field queries
     result.push(nonTagFilterArticles);

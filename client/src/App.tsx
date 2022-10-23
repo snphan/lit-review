@@ -106,11 +106,17 @@ query articleBySummary($summary: String!) {
   }
 }
 `
+interface filterFields {
+  authorKeyword: null | string;
+  dates: null | number[];
+  titleKeyword: null | string;
+  summaryKeyword: null | string;
+}
 
 function App({ client }: any) {
   const [show, setShow] = useState(false);
   const [filtTags, setFiltTags] = useState<string[]>([]);
-  const [nonTagFilt, setNonTagFilt] = useState<Object>({
+  const [nonTagFilt, setNonTagFilt] = useState<filterFields>({
     authorKeyword: null,
     dates: null,
     titleKeyword: null,
@@ -162,18 +168,16 @@ function App({ client }: any) {
   } = useQuery(GET_TAGS);
 
   useEffect(() => {
-    // refetchFilterArticle({ tagNames: filtTags });
-    debouncedFilter({ tagNames: filtTags, ...nonTagFilt })
-    // console.log(filterArticleData);
+    debouncedFilter({ tagNames: filtTags, ...nonTagFilt! });
+    // ({ tagNames: filtTags, ...nonTagFilt }).then(() => console.log(filterArticleData));
   }, [filtTags, nonTagFilt]);
 
   const debouncedFilter = useRef(
     debounce(async (criteria: any) => {
-      console.log("searching for: ", criteria);
+      console.log(criteria);
+      refetchFilterArticle(criteria);
     }, 300)
   ).current;
-
-
 
   const handleClose = (isShow = false) => {
     // Update the database here
@@ -213,7 +217,8 @@ function App({ client }: any) {
 
   const handleShow = () => setShow(true);
 
-  const articleItems = (filtTags.length > 0 ? filterArticleData?.filterArticles : articleData?.articles)?.map((article: ArticleData) =>
+  const articleItems = ((filtTags.length > 0 || nonTagFilt.summaryKeyword || nonTagFilt.titleKeyword || nonTagFilt.authorKeyword || nonTagFilt.dates
+  ) ? filterArticleData?.filterArticles : articleData?.articles)?.map((article: ArticleData) =>
     <Article
       key={article.id}
       article={article}
@@ -221,6 +226,7 @@ function App({ client }: any) {
       handleShow={handleShow}
     />
   );
+
   return (
     <div className="">
       <nav className="d-flex justify-content-between fixed-top navbar navbar-dark bg-light">
@@ -263,13 +269,20 @@ function App({ client }: any) {
         <thead>
           <tr>
             <th style={{ width: "5%" }}>#</th>
-            <th style={{ width: "10%" }}>Title</th>
-            <th style={{ width: "5%" }}>Author</th>
-            <th style={{ width: "5%" }}>Year</th>
-            <th style={{ width: "70%" }}>
-              <div className="d-flex">
-                <Form.Control id="summary-input" type="input" placeholder="Summary Keyword" onChange={(e) => setNonTagFilt({ ...nonTagFilt, summaryKeyword: e.target.value ? e.target.value : null })} />
-              </div>
+            <th style={{ width: "10%" }}>
+              <Form.Control id="title-input" type="input" placeholder="Title" onChange={(e) => setNonTagFilt({ ...nonTagFilt, titleKeyword: e.target.value ? `%${e.target.value}%` : null })} />
+            </th>
+            <th style={{ width: "7.5%" }}>
+              <Form.Control id="author-input" type="input" placeholder="Author" onChange={(e) => setNonTagFilt({ ...nonTagFilt, authorKeyword: e.target.value ? `%${e.target.value}%` : null })} />
+            </th>
+            <th style={{ width: "5%" }}>
+              <Form.Control id="author-input" type="input" placeholder="Year" onChange={(e) => setNonTagFilt({
+                ...nonTagFilt, dates: e.target.value.split('-').length == 2 ? e.target.value.split('-').map((v: string) => parseInt(v)) : null
+              })} />
+            </th>
+
+            <th style={{ width: "67.5%" }}>
+              <Form.Control id="summary-input" type="input" placeholder="Summary Keyword" onChange={(e) => setNonTagFilt({ ...nonTagFilt, summaryKeyword: e.target.value ? `%${e.target.value}%` : null })} />
             </th>
             <th style={{ width: "5%" }}>
 
