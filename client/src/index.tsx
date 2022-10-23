@@ -18,6 +18,7 @@ const client = new ApolloClient({
 
 root.render(
   <React.StrictMode>
+    <meta charSet="utf-8" />
     <ApolloProvider client={client}>
 
       <App client={client} />

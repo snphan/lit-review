@@ -8,6 +8,9 @@ import { TagData } from "./Tag";
 import Dropdown from 'react-bootstrap/Dropdown';
 import { getAllJSDocTagsOfKind } from "typescript";
 import { gql, useMutation } from "@apollo/client";
+import { ContentState, Editor, EditorState, RichUtils } from 'draft-js';
+import 'draft-js/dist/Draft.css';
+import { convertToHTML, convertFromHTML } from 'draft-convert';
 
 const DELETE_ARTICLE = gql`
   mutation deleteArticle($articleId: Float!) {
@@ -21,8 +24,79 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
   const tagNames = tags ? tags.map((tag: TagData) => tag.name) : [];
   const [delCount, setDelCount] = useState<number>(0);
   const [savedText, setSavedText] = useState<string>("");
+  const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
+
+  // Draft.js stuff
+  const handleKeyCommand = (command: any, editorState: any) => {
+    const newState = RichUtils.handleKeyCommand(editorState, command);
+
+    if (newState) {
+      console.log(convertToHTML(newState.getCurrentContent()));
+      setEditorState(newState);
+
+      return 'handled';
+    }
+
+    return 'not-handled';
+  }
 
   useEffect(() => {
+    setEditData({ ...editData, summary: convertToHTML(editorState.getCurrentContent()) });
+  }, [editorState])
+
+  useEffect(() => {
+    if (show) {
+      // Set the editor with the new content everytime we show the editmodal
+      const convertedHTML = convertFromHTML(editData.summary as string);
+      const editorState = EditorState.createWithContent(convertedHTML);
+      setEditorState(editorState);
+    }
+  }, [show])
+
+  const BLOCK_TYPES = [
+    { label: "H1", style: "header-one" },
+    { label: "H2", style: "header-two" },
+    { label: "H3", style: "header-three" },
+    { label: "H4", style: "header-four" },
+    { label: "H5", style: "header-five" },
+    { label: "H6", style: "header-six" },
+    { label: "Blockquote", style: "blockquote" },
+    { label: "UL", style: "unordered-list-item" },
+    { label: "OL", style: "ordered-list-item" },
+    { label: "Code Block", style: "code-block" }
+  ];
+
+  const StyleButton = (props: any) => {
+    let onClickButton = (e: any) => {
+      e.preventDefault();
+      props.onToggle(props.style);
+    };
+    return <Button className="mx-2" variant="outline-secondary" onMouseDown={onClickButton}>{props.label}</Button>;
+  };
+
+  const BlockStyleControls = (props: any) => {
+    return (
+      <div>
+        {BLOCK_TYPES.map((type) => (
+          <StyleButton
+            key={type.label}
+            label={type.label}
+            onToggle={props.onToggle}
+            style={type.style}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const onBlockClick = (e: any) => {
+    let nextState = RichUtils.toggleBlockType(editorState, e);
+    setEditorState(nextState);
+  };
+  //---------------------------------
+
+  useEffect(() => {
+    // Show the saved prompt for 2 secs on save
     const sleep = async (ms: number) => {
       await new Promise(r => setTimeout(r, ms));
     }
@@ -56,7 +130,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
         <Modal.Header closeButton>
           <Modal.Title>{editData.title}</Modal.Title>
         </Modal.Header>
-        <Modal.Body onKeyDown={handleKeyDown} contentEditable={true}>
+        <Modal.Body onKeyDown={handleKeyDown}>
           <Form.Label>Title</Form.Label>
           <Form.Control type="text" defaultValue={editData.title}
             onChange={e => setEditData({ ...editData, title: e.target.value })}
@@ -69,11 +143,17 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
           <Form.Control type="text" defaultValue={editData.year}
             onChange={e => setEditData({ ...editData, year: parseFloat(e.target.value) })}
           />
-          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-            <Form.Label>Summary</Form.Label>
-            <Form.Control as="textarea" rows={3} defaultValue={editData.summary}
+          <Form.Group className="m-4" controlId="exampleForm.ControlTextarea1">
+            <h3 className="text-center">Summary</h3>
+            {/* <Form.Control as="textarea" rows={3} defaultValue={editData.summary}
               onChange={e => setEditData({ ...editData, summary: e.target.value })}
-            />
+            /> */}
+            <BlockStyleControls onToggle={onBlockClick} />
+            <hr />
+            <Editor editorState={editorState} onChange={(e) => {
+              setEditorState(e)
+            }} handleKeyCommand={handleKeyCommand} />
+            <hr />
           </Form.Group>
           <Form.Label><strong>Tags</strong></Form.Label>
           <br />
@@ -111,6 +191,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
                 ) : null}
             </Dropdown.Menu>
           </Dropdown>
+
         </Modal.Body>
         <Modal.Footer>
           <span style={{ color: "green" }}>{savedText}</span>
@@ -142,6 +223,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
           <Button variant="primary" onClick={() => handleClose(false)}>
             Save Changes
           </Button>
+
         </Modal.Footer>
       </Modal>
     </>
