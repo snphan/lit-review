@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { ApolloProvider, ApolloClient, InMemoryCache, gql, useMutation, useQuery } from '@apollo/client';
@@ -10,6 +10,7 @@ import { TagData } from './components/Tag';
 import { Button } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
+import { debounce } from 'lodash';
 
 const FILTER_ARTICLES = gql`
 query filterArticles($tagNames: [String!]!, $authorKeyword: String, $titleKeyword: String, $summaryKeyword: String, $dates: [Int!]) {
@@ -109,6 +110,13 @@ query articleBySummary($summary: String!) {
 function App({ client }: any) {
   const [show, setShow] = useState(false);
   const [filtTags, setFiltTags] = useState<string[]>([]);
+  const [nonTagFilt, setNonTagFilt] = useState<Object>({
+    authorKeyword: null,
+    dates: null,
+    titleKeyword: null,
+    summaryKeyword: null
+  });
+
   const [newTag, setNewTag] = useState<string>("");
 
   // const [articleData, setData] = useState<ArticleData[]>([]);
@@ -153,17 +161,17 @@ function App({ client }: any) {
     refetch: refetchAllTags
   } = useQuery(GET_TAGS);
 
-  // const {
-  //   loading: summaryArticlesLoading,
-  //   data: summartyArticlesData,
-  //   error: summaryArticlesError,
-  //   refetch: refetchSummaryArticles
-  // } = useQuery(GET_ARTICLE_BY_SUMMARY);
-
   useEffect(() => {
-    refetchFilterArticle({ tagNames: filtTags });
-    console.log(filterArticleData);
-  }, [filtTags]);
+    // refetchFilterArticle({ tagNames: filtTags });
+    debouncedFilter({ tagNames: filtTags, ...nonTagFilt })
+    // console.log(filterArticleData);
+  }, [filtTags, nonTagFilt]);
+
+  const debouncedFilter = useRef(
+    debounce(async (criteria: any) => {
+      console.log("searching for: ", criteria);
+    }, 300)
+  ).current;
 
 
 
@@ -258,7 +266,11 @@ function App({ client }: any) {
             <th style={{ width: "10%" }}>Title</th>
             <th style={{ width: "5%" }}>Author</th>
             <th style={{ width: "5%" }}>Year</th>
-            <th style={{ width: "70%" }}>Summary</th>
+            <th style={{ width: "70%" }}>
+              <div className="d-flex">
+                <Form.Control id="summary-input" type="input" placeholder="Summary Keyword" onChange={(e) => setNonTagFilt({ ...nonTagFilt, summaryKeyword: e.target.value ? e.target.value : null })} />
+              </div>
+            </th>
             <th style={{ width: "5%" }}>
 
               <Dropdown>
