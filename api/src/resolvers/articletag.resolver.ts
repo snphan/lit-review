@@ -107,6 +107,7 @@ export class ArticleTagResolver {
     // Contains the result from tags + all other field queries
     result.push(nonTagFilterArticles);
     const intersectionResult = result.reduce((a: ArticleEntity[], c: ArticleEntity[]) => a.filter(i => (c.map((elem) => elem.id)).includes(i.id)));
+    console.log('intersectionResult', intersectionResult);
     return intersectionResult;
   }
 

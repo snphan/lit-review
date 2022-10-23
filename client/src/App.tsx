@@ -11,10 +11,11 @@ import { Button } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
 
-const GET_ARTICLES_BY_TAGS = gql`
-query getArticleByTag($tagNames: [String!]!) {
-  filterByTags(tagNames: $tagNames) {
+const FILTER_ARTICLES = gql`
+query filterArticles($tagNames: [String!]!, $authorKeyword: String, $titleKeyword: String, $summaryKeyword: String, $dates: [Int!]) {
+  filterArticles(tagNames: $tagNames, authorKeyword: $authorKeyword, titleKeyword: $titleKeyword, summaryKeyword: $summaryKeyword, dates: $dates) {
     id
+    firstAuthor
     title
     year
     summary
@@ -139,7 +140,7 @@ function App({ client }: any) {
     loading: filterArticlesLoading,
     data: filterArticleData,
     error: filterArticleError,
-    refetch: refetchFilterArticle } = useQuery(GET_ARTICLES_BY_TAGS, {
+    refetch: refetchFilterArticle } = useQuery(FILTER_ARTICLES, {
       variables: {
         tagNames: filtTags
       }
@@ -204,7 +205,7 @@ function App({ client }: any) {
 
   const handleShow = () => setShow(true);
 
-  const articleItems = (filtTags.length > 0 ? filterArticleData?.filterByTags : articleData?.articles)?.map((article: ArticleData) =>
+  const articleItems = (filtTags.length > 0 ? filterArticleData?.filterArticles : articleData?.articles)?.map((article: ArticleData) =>
     <Article
       key={article.id}
       article={article}
@@ -232,20 +233,23 @@ function App({ client }: any) {
           }}>+</Button>
         </div>
 
-        <Button onClick={() => {
-          handleShow();
-          // Empty ArticleData
-          const emptyArticleData: ArticleData = {
-            id: "",
-            title: "",
-            firstAuthor: "",
-            summary: "",
-            year: 0,
-            tags: [],
-            inputTags: []
-          }
-          setEditData(emptyArticleData);
-        }} variant="primary">+</Button>
+        <div className="d-flex">
+          <p className='m-2'>Add Article</p>
+          <Button onClick={() => {
+            handleShow();
+            // Empty ArticleData
+            const emptyArticleData: ArticleData = {
+              id: "",
+              title: "",
+              firstAuthor: "",
+              summary: "",
+              year: 0,
+              tags: [],
+              inputTags: []
+            }
+            setEditData(emptyArticleData);
+          }} variant="primary">+</Button>
+        </div>
       </nav>
       <Table striped bordered hover style={{ marginTop: "4.5em" }}>
         <thead>
