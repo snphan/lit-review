@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { ApolloProvider, ApolloClient, InMemoryCache, gql, useMutation, useQuery } from '@apollo/client';
@@ -10,11 +10,13 @@ import { TagData } from './components/Tag';
 import { Button } from 'react-bootstrap';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
+import { debounce } from 'lodash';
 
-const GET_ARTICLES_BY_TAGS = gql`
-query getArticleByTag($tagNames: [String!]!) {
-  filterByTags(tagNames: $tagNames) {
+const FILTER_ARTICLES = gql`
+query filterArticles($tagNames: [String!]!, $authorKeyword: String, $titleKeyword: String, $summaryKeyword: String, $dates: [Int!]) {
+  filterArticles(tagNames: $tagNames, authorKeyword: $authorKeyword, titleKeyword: $titleKeyword, summaryKeyword: $summaryKeyword, dates: $dates) {
     id
+    firstAuthor
     title
     year
     summary
@@ -104,10 +106,23 @@ query articleBySummary($summary: String!) {
   }
 }
 `
+interface filterFields {
+  authorKeyword: null | string;
+  dates: null | number[];
+  titleKeyword: null | string;
+  summaryKeyword: null | string;
+}
 
 function App({ client }: any) {
   const [show, setShow] = useState(false);
   const [filtTags, setFiltTags] = useState<string[]>([]);
+  const [nonTagFilt, setNonTagFilt] = useState<filterFields>({
+    authorKeyword: null,
+    dates: null,
+    titleKeyword: null,
+    summaryKeyword: null
+  });
+
   const [newTag, setNewTag] = useState<string>("");
 
   // const [articleData, setData] = useState<ArticleData[]>([]);
@@ -139,7 +154,7 @@ function App({ client }: any) {
     loading: filterArticlesLoading,
     data: filterArticleData,
     error: filterArticleError,
-    refetch: refetchFilterArticle } = useQuery(GET_ARTICLES_BY_TAGS, {
+    refetch: refetchFilterArticle } = useQuery(FILTER_ARTICLES, {
       variables: {
         tagNames: filtTags
       }
@@ -152,19 +167,17 @@ function App({ client }: any) {
     refetch: refetchAllTags
   } = useQuery(GET_TAGS);
 
-  // const {
-  //   loading: summaryArticlesLoading,
-  //   data: summartyArticlesData,
-  //   error: summaryArticlesError,
-  //   refetch: refetchSummaryArticles
-  // } = useQuery(GET_ARTICLE_BY_SUMMARY);
-
   useEffect(() => {
-    refetchFilterArticle({ tagNames: filtTags });
-    console.log(filterArticleData);
-  }, [filtTags]);
+    debouncedFilter({ tagNames: filtTags, ...nonTagFilt! });
+    // ({ tagNames: filtTags, ...nonTagFilt }).then(() => console.log(filterArticleData));
+  }, [filtTags, nonTagFilt]);
 
-
+  const debouncedFilter = useRef(
+    debounce(async (criteria: any) => {
+      console.log(criteria);
+      refetchFilterArticle(criteria);
+    }, 300)
+  ).current;
 
   const handleClose = (isShow = false) => {
     // Update the database here
@@ -204,7 +217,8 @@ function App({ client }: any) {
 
   const handleShow = () => setShow(true);
 
-  const articleItems = (filtTags.length > 0 ? filterArticleData?.filterByTags : articleData?.articles)?.map((article: ArticleData) =>
+  const articleItems = ((filtTags.length > 0 || nonTagFilt.summaryKeyword || nonTagFilt.titleKeyword || nonTagFilt.authorKeyword || nonTagFilt.dates
+  ) ? filterArticleData?.filterArticles : articleData?.articles)?.map((article: ArticleData) =>
     <Article
       key={article.id}
       article={article}
@@ -212,6 +226,7 @@ function App({ client }: any) {
       handleShow={handleShow}
     />
   );
+
   return (
     <div className="">
       <nav className="d-flex justify-content-between fixed-top navbar navbar-dark bg-light">
@@ -232,29 +247,43 @@ function App({ client }: any) {
           }}>+</Button>
         </div>
 
-        <Button onClick={() => {
-          handleShow();
-          // Empty ArticleData
-          const emptyArticleData: ArticleData = {
-            id: "",
-            title: "",
-            firstAuthor: "",
-            summary: "",
-            year: 0,
-            tags: [],
-            inputTags: []
-          }
-          setEditData(emptyArticleData);
-        }} variant="primary">+</Button>
+        <div className="d-flex">
+          <p className='m-2'>Add Article</p>
+          <Button onClick={() => {
+            handleShow();
+            // Empty ArticleData
+            const emptyArticleData: ArticleData = {
+              id: "",
+              title: "",
+              firstAuthor: "",
+              summary: "",
+              year: 0,
+              tags: [],
+              inputTags: []
+            }
+            setEditData(emptyArticleData);
+          }} variant="primary">+</Button>
+        </div>
       </nav>
       <Table striped bordered hover style={{ marginTop: "4.5em" }}>
         <thead>
           <tr>
             <th style={{ width: "5%" }}>#</th>
-            <th style={{ width: "10%" }}>Title</th>
-            <th style={{ width: "5%" }}>Author</th>
-            <th style={{ width: "5%" }}>Year</th>
-            <th style={{ width: "70%" }}>Summary</th>
+            <th style={{ width: "10%" }}>
+              <Form.Control id="title-input" type="input" placeholder="Title" onChange={(e) => setNonTagFilt({ ...nonTagFilt, titleKeyword: e.target.value ? `%${e.target.value}%` : null })} />
+            </th>
+            <th style={{ width: "7.5%" }}>
+              <Form.Control id="author-input" type="input" placeholder="Author" onChange={(e) => setNonTagFilt({ ...nonTagFilt, authorKeyword: e.target.value ? `%${e.target.value}%` : null })} />
+            </th>
+            <th style={{ width: "5%" }}>
+              <Form.Control id="author-input" type="input" placeholder="Year" onChange={(e) => setNonTagFilt({
+                ...nonTagFilt, dates: e.target.value.split('-').length == 2 ? e.target.value.split('-').map((v: string) => parseInt(v)) : null
+              })} />
+            </th>
+
+            <th style={{ width: "67.5%" }}>
+              <Form.Control id="summary-input" type="input" placeholder="Summary Keyword" onChange={(e) => setNonTagFilt({ ...nonTagFilt, summaryKeyword: e.target.value ? `%${e.target.value}%` : null })} />
+            </th>
             <th style={{ width: "5%" }}>
 
               <Dropdown>

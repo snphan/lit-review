@@ -5,7 +5,7 @@ import { TagEntity } from "@/entities/tag.entity";
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import { TagDto } from "@dtos/tag.dto";
 import { HttpException } from "@/exceptions/HttpException";
-import { Connection, In, Like, TransactionAlreadyStartedError } from "typeorm";
+import { Between, Connection, In, Like, Not, TransactionAlreadyStartedError } from "typeorm";
 
 
 
@@ -82,14 +82,34 @@ export class ArticleTagResolver {
   }
 
   @Query(() => [ArticleEntity])
-  async filterByTags(@Ctx() { articleLoader }: any, @Arg("tagNames", () => [String]) tagNames: string[]): Promise<ArticleEntity[]> {
+  async filterArticles(
+    @Ctx() { articleLoader }: any,
+    @Arg("tagNames", () => [String]) tagNames: string[],
+    @Arg("dates", () => [Int], { nullable: true }) dates: number[] | null,
+    @Arg("summaryKeyword", { nullable: true }) summaryKeyword: string | null,
+    @Arg("titleKeyword", { nullable: true }) titleKeyword: string | null,
+    @Arg("authorKeyword", { nullable: true }) authorKeyword: string | null,
+  ): Promise<ArticleEntity[]> {
     const findTag = await TagEntity.find({ where: { name: In(tagNames) } });
-
-
     if (!findTag) throw new HttpException(404, `Tag ${tagNames} Cannot be found`);
-    console.log(findTag.map((tag: TagEntity) => tag.id));
+
+    const nonTagFilterArticles = await ArticleEntity.find(
+      {
+        where: {
+          ...(dates && { year: Between(dates[0], dates[1]) }), // Destruct and add to where only if dates exists.
+          ...(authorKeyword && { firstAuthor: Like(authorKeyword) }), // Destruct and add to where only if author exists.
+          ...(summaryKeyword && { summary: Like(summaryKeyword) }), // Destruct and add to where only if summary exists.
+          ...(titleKeyword && { title: Like(titleKeyword) }), // Destruct and add to where only if title exists.
+        }
+      })
+
+
+    console.log("nontagfilterarticles", nonTagFilterArticles);
     const result = await articleLoader.loadMany(findTag.map((tag: TagEntity) => tag.id));
+    // Contains the result from tags + all other field queries
+    result.push(nonTagFilterArticles);
     const intersectionResult = result.reduce((a: ArticleEntity[], c: ArticleEntity[]) => a.filter(i => (c.map((elem) => elem.id)).includes(i.id)));
+    console.log('intersectionResult', intersectionResult);
     return intersectionResult;
   }
 
