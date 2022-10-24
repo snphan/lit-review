@@ -76,7 +76,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
 
   const BlockStyleControls = (props: any) => {
     return (
-      <div>
+      <div className={props.className}>
         {BLOCK_TYPES.map((type) => (
           <StyleButton
             key={type.label}
@@ -163,7 +163,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
           />
           <Form.Group className="m-4" controlId="exampleForm.ControlTextarea1">
             <h3 className="text-center">Summary</h3>
-            <BlockStyleControls onToggle={onBlockClick} />
+            <BlockStyleControls onToggle={onBlockClick} className="blockstyles" />
             <hr />
             <Editor editorState={editorState} onChange={(e) => {
               setEditorState(e)

@@ -66,3 +66,16 @@
     padding: 5px 0px!important;
     line-height: 0!important;
 }
+
+.blockstyles {
+    position: sticky;
+    top: 2em;
+    z-Index: 2000;
+    background-color: rgb(254, 254, 254);
+    border-radius: 1em;
+    padding: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 5px 1px rgba(0,0,0,0.15);
+}
