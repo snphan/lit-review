@@ -266,7 +266,7 @@ function App({ client }: any) {
         </div>
       </nav>
       <Table striped bordered hover style={{ marginTop: "4.5em" }}>
-        <thead>
+        <thead style={{ top: "4.5em", position: "sticky", backgroundColor: "#b6c9db" }}>
           <tr>
             <th style={{ width: "5%" }}>#</th>
             <th style={{ width: "10%" }}>
