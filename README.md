@@ -1,4 +1,4 @@
-# type-PERN
+# Lit Review An App To Streamline Lit-Review Summaries
 
 A template to work with Postgres, Express, React, Node.js and GraphQL
 
@@ -38,3 +38,24 @@ CREDENTIALS = true
 1. api will be at http://localhost:3000 and Client will be at http://localhost:8000
 
 Have fun developing!
+
+# Learnings
+
+We can toggle typeORM where clause by using a destructor like so. If any of the fields are null, they don't get added.
+
+```typescript
+    const nonTagFilterArticles = await ArticleEntity.find(
+      {
+        where: {
+          ...(dates && { year: Between(dates[0], dates[1]) }), // Destruct and add to where only if dates exists.
+          ...(authorKeyword && { firstAuthor: Like(authorKeyword) }), // Destruct and add to where only if author exists.
+          ...(summaryKeyword && { summary: Like(summaryKeyword) }), // Destruct and add to where only if summary exists.
+          ...(titleKeyword && { title: Like(titleKeyword) }), // Destruct and add to where only if title exists.
+        }
+      })
+```
+
+
+
+
+
