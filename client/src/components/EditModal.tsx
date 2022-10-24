@@ -93,6 +93,24 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
     let nextState = RichUtils.toggleBlockType(editorState, e);
     setEditorState(nextState);
   };
+
+  const onTab = (e: any) => {
+    //prevent cursor from selecting the next interactive element
+    e.preventDefault()
+
+    // assign a constant for the new editorState
+    const newState = RichUtils.onTab(e, editorState, 4)
+
+    // if a new editor state exists, set editor state to new state
+    // and return 'handled', otherwise return 'not-handled
+    if (newState) {
+      setEditorState(newState)
+      return 'handled'
+    } else {
+      return 'not-handled'
+    }
+  }
+
   //---------------------------------
 
   useEffect(() => {
@@ -145,14 +163,13 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
           />
           <Form.Group className="m-4" controlId="exampleForm.ControlTextarea1">
             <h3 className="text-center">Summary</h3>
-            {/* <Form.Control as="textarea" rows={3} defaultValue={editData.summary}
-              onChange={e => setEditData({ ...editData, summary: e.target.value })}
-            /> */}
             <BlockStyleControls onToggle={onBlockClick} />
             <hr />
             <Editor editorState={editorState} onChange={(e) => {
               setEditorState(e)
-            }} handleKeyCommand={handleKeyCommand} />
+            }} handleKeyCommand={handleKeyCommand}
+              onTab={onTab}
+            />
             <hr />
           </Form.Group>
           <Form.Label><strong>Tags</strong></Form.Label>
