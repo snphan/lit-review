@@ -35,7 +35,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
   const [pdfURL, setPdfURL] = useState<string>("")
   const [showPDF, setShowPDF] = useState<boolean>(false);
-  const [getPDF, { loading: pdfLoading, error: pdfError, data: pdfData }] = useLazyQuery(GET_PDF);
+  const [getPDF, { loading: pdfLoading, error: pdfError, data: pdfData, refetch: refetchPdf }] = useLazyQuery(GET_PDF);
   const [newFileAdded, setNewFileAdded] = useState<boolean>(false);
 
   // Draft.js stuff
@@ -132,7 +132,8 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
         URL.revokeObjectURL(pdfURL)
         setPdfURL("");
       }
-      getPDF({ variables: { articleId: parseInt(editData.id) } }).then(async (result: any) => {
+      refetchPdf({ articleId: parseInt(editData.id) }).then(async (result: any) => {
+
         await new Promise(() => {
           const pdfDataBit = new Uint8Array(result?.data?.articlesById.pdf);
           if (pdfDataBit) {
