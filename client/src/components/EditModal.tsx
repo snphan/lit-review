@@ -2,12 +2,12 @@ import { ArticleData } from "./Article";
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Badge from 'react-bootstrap/Badge';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Form from 'react-bootstrap/Form';
 import { TagData } from "./Tag";
 import Dropdown from 'react-bootstrap/Dropdown';
 import { getAllJSDocTagsOfKind } from "typescript";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation } from "@apollo/client";
 import { ContentState, Editor, EditorState, RichUtils } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import { convertToHTML, convertFromHTML } from 'draft-convert';
@@ -18,6 +18,14 @@ const DELETE_ARTICLE = gql`
   }
 `
 
+const GET_PDF = gql`
+  query getArticlesById($articleId: Float!) {
+    articlesById(articleId: $articleId) {
+      pdf
+    }
+  }
+`
+
 export function EditModal({ editData, show, handleClose, allTags, setEditData, setShow,
   refetchAllArticles, refetchFilterArticle }: any) {
   const { tags } = editData;
@@ -25,13 +33,16 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
   const [delCount, setDelCount] = useState<number>(0);
   const [savedText, setSavedText] = useState<string>("");
   const [editorState, setEditorState] = useState(() => EditorState.createEmpty());
+  const [pdfURL, setPdfURL] = useState<string>("")
+  const [showPDF, setShowPDF] = useState<boolean>(false);
+  const [getPDF, { loading: pdfLoading, error: pdfError, data: pdfData }] = useLazyQuery(GET_PDF);
+  const [newFileAdded, setNewFileAdded] = useState<boolean>(false);
 
   // Draft.js stuff
   const handleKeyCommand = (command: any, editorState: any) => {
     const newState = RichUtils.handleKeyCommand(editorState, command);
 
     if (newState) {
-      console.log(convertToHTML(newState.getCurrentContent()));
       setEditorState(newState);
 
       return 'handled';
@@ -51,6 +62,8 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
       const editorState = EditorState.createWithContent(convertedHTML);
       setEditorState(editorState);
     }
+    setNewFileAdded(false);
+    setShowPDF(false);
   }, [show])
 
   const BLOCK_TYPES = [
@@ -114,6 +127,29 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
   //---------------------------------
 
   useEffect(() => {
+    if (showPDF && !newFileAdded) {
+      if (pdfURL) {
+        URL.revokeObjectURL(pdfURL)
+        setPdfURL("");
+      }
+      getPDF({ variables: { articleId: parseInt(editData.id) } }).then(async (result: any) => {
+        await new Promise(() => {
+          const pdfDataBit = new Uint8Array(result?.data?.articlesById.pdf);
+          if (pdfDataBit) {
+            const fileBlob = new Blob([pdfDataBit], { type: "application/pdf" })
+            const newURL = URL.createObjectURL(fileBlob);
+            setPdfURL(newURL);
+          }
+        });
+      });
+    }
+  }, [showPDF]);
+
+  const handleClickShowPdf = () => {
+    setShowPDF(!showPDF);
+  }
+
+  useEffect(() => {
     // Show the saved prompt for 2 secs on save
     const sleep = async (ms: number) => {
       await new Promise(r => setTimeout(r, ms));
@@ -127,13 +163,36 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
     let charCode = String.fromCharCode(event.which).toLowerCase();
     if ((event.ctrlKey || event.metaKey) && charCode === 's') {
       event.preventDefault();
-      setSavedText("Saved...");
-      handleClose(true);
+      if (editData.id) {
+        setSavedText("Saved...");
+        handleClose(true);
+      }
     } else if ((event.ctrlKey || event.metaKey) && charCode === 'c') {
       // alert("CTRL+C Pressed");
     } else if ((event.ctrlKey || event.metaKey) && charCode === 'v') {
       // alert("CTRL+V Pressed");
     }
+  }
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const files = Array.from(e.target.files!);
+    const file = files[0];
+
+    if (pdfURL) {
+      URL.revokeObjectURL(pdfURL)
+      setPdfURL("");
+    }
+    let x: Uint8Array;
+    file.arrayBuffer().then(buff => {
+      x = new Uint8Array(buff);
+      setEditData({ ...editData, pdf: Array.from(x) });
+      setNewFileAdded(true);
+    }).then(() => {
+      const fileBlob = new Blob([x], { type: "application/pdf" })
+      const newURL = URL.createObjectURL(fileBlob);
+      setPdfURL(newURL);
+      setShowPDF(true);
+    })
   }
 
   const [deleteArticle, {
@@ -208,9 +267,25 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
                 ) : null}
             </Dropdown.Menu>
           </Dropdown>
-
+          {editData.id ?
+            <Button variant="primary" onClick={handleClickShowPdf}>Show PDF</Button>
+            : null}
+          {pdfLoading ?
+            <p>Loading...</p> : null
+          }
+          {showPDF ?
+            <embed
+              src={pdfURL}
+              type="application/pdf"
+              width="100%"
+              height="800px"
+            /> : null}
         </Modal.Body>
         <Modal.Footer>
+          <Form.Group controlId="formFile" className="mb-3">
+            <Form.Label>Default file input example</Form.Label>
+            <Form.Control type="file" onChange={handleFileSelected} />
+          </Form.Group>
           <span style={{ color: "green" }}>{savedText}</span>
           {editData.id ?
             <Button variant="danger" onClick={() => {
@@ -234,6 +309,7 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
               🗑️
             </Button>
             : null}
+
           <Button variant="secondary" onClick={() => { setShow(false); setDelCount(0); }}>
             Close
           </Button>

@@ -11,6 +11,7 @@ export interface ArticleData {
   year: number;
   tags: TagData[];
   inputTags: number[] | null;
+  pdf: number[] | null;
 }
 
 

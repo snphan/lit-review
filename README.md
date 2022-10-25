@@ -55,6 +55,27 @@ We can toggle typeORM where clause by using a destructor like so. If any of the 
       })
 ```
 
+We can upload PDFs as an [Int] into postgres. Just need to convert back 
+to Uint8Array -> Blob -> URL when we want to embed it.
+
+```typescript
+const files = Array.from(e.target.files!);
+const file = files[0];
+
+if (pdfURL) {
+    URL.revokeObjectURL(pdfURL)
+    setPdfURL("");
+}
+let x: Uint8Array;
+file.arrayBuffer().then(buff => {
+    x = new Uint8Array(buff);
+    setEditData({ ...editData, pdf: Array.from(x) });
+}).then(() => {
+    const fileBlob = new Blob([x], { type: "application/pdf" })
+    const newURL = URL.createObjectURL(fileBlob);
+    setPdfURL(newURL);
+})
+```
 
 
 

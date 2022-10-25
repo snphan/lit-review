@@ -29,6 +29,7 @@ class App {
     this.app = express();
     this.env = NODE_ENV || 'development';
     this.port = PORT || 3000;
+    this.app.use(express.json({ limit: '50mb' }));
 
     this.connectToDatabase();
     this.initializeMiddlewares();
@@ -83,8 +84,8 @@ class App {
       context: async ({ req }) => {
         try {
           const user = await authMiddleware(req);
-          return { 
-            user: user, 
+          return {
+            user: user,
             authorsLoader: createAuthorsLoader(),
             tagsLoader: createTagsLoader(),
             articleLoader: createArticlesLoader(),
@@ -104,7 +105,7 @@ class App {
 
         return error;
       },
-      
+
     });
 
 
