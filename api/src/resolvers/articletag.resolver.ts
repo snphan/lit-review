@@ -24,9 +24,18 @@ export class ArticleTagResolver {
   async updateArticle(
     @Ctx() { connection }: any,
     @Arg('articleId') articleId: number,
-    @Arg('articleData') articleData: CreateArticleDto
+    @Arg('articleData') articleData: CreateArticleDto,
   ) {
-    const changedArticle: ArticleEntity = await ArticleEntity.findOne({ where: { id: articleId } });
+    const changedArticle: ArticleEntity = await ArticleEntity.findOne({
+      select: [
+        'id',
+        'title',
+        'firstAuthor',
+        'year',
+        'summary',
+      ], // use select here because the pdfs are way too bulky.
+      where: { id: articleId }
+    });
     const { inputTags, ...data } = articleData;
 
     await connection.manager.transaction(async (manager) => {
@@ -43,7 +52,16 @@ export class ArticleTagResolver {
         })
       }
     });
-    const updatedArticle: ArticleEntity = await ArticleEntity.findOne({ where: { id: articleId } });
+    const updatedArticle: ArticleEntity = await ArticleEntity.findOne({
+      select: [
+        'id',
+        'title',
+        'firstAuthor',
+        'year',
+        'summary',
+      ], // use select here because the pdfs are way too bulky.
+      where: { id: articleId }
+    });
     return updatedArticle;
   }
 
@@ -95,6 +113,13 @@ export class ArticleTagResolver {
 
     const nonTagFilterArticles = await ArticleEntity.find(
       {
+        select: [
+          'id',
+          'title',
+          'firstAuthor',
+          'year',
+          'summary',
+        ], // use select here because the pdfs are way too bulky.
         where: {
           ...(dates && { year: Between(dates[0], dates[1]) }), // Destruct and add to where only if dates exists.
           ...(authorKeyword && { firstAuthor: Like(authorKeyword) }), // Destruct and add to where only if author exists.
@@ -104,27 +129,30 @@ export class ArticleTagResolver {
       })
 
 
-    console.log("nontagfilterarticles", nonTagFilterArticles);
     const result = await articleLoader.loadMany(findTag.map((tag: TagEntity) => tag.id));
     // Contains the result from tags + all other field queries
     result.push(nonTagFilterArticles);
     const intersectionResult = result.reduce((a: ArticleEntity[], c: ArticleEntity[]) => a.filter(i => (c.map((elem) => elem.id)).includes(i.id)));
-    console.log('intersectionResult', intersectionResult);
     return intersectionResult;
   }
 
-  @Query(() => [ArticleEntity])
-  async articlesFindBySummary(@Arg("summary") summary: string) {
-    return ArticleEntity.find({
-      where: {
-        summary: Like(`%${summary}%`),
-      }
-    });
+  @Query(() => ArticleEntity)
+  async articlesById(@Arg("articleId") articleId: number): Promise<ArticleEntity> {
+    return await ArticleEntity.findOne({ where: { id: articleId } });
   }
 
   @Query(() => [ArticleEntity])
   async articles() {
-    return (await ArticleEntity.find()).sort((a, b) => a.id - b.id);
+    const findArticles = (await ArticleEntity.find({
+      select: [
+        'id',
+        'title',
+        'firstAuthor',
+        'year',
+        'summary',
+      ], // use select here because the pdfs are way too bulky.
+    })).sort((a, b) => a.id - b.id);
+    return findArticles;
   }
 
   @Query(() => [TagEntity])

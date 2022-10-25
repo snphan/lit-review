@@ -174,7 +174,6 @@ function App({ client }: any) {
 
   const debouncedFilter = useRef(
     debounce(async (criteria: any) => {
-      console.log(criteria);
       refetchFilterArticle(criteria);
     }, 300)
   ).current;
@@ -204,7 +203,6 @@ function App({ client }: any) {
         // Create a new article
         const { tags, id, ...createData } = editData;
         const tagIds = tags.map((tag: TagData) => tag.id);
-
         createArticle({
           variables: {
             articleData: { ...createData, inputTags: tagIds }
@@ -259,7 +257,8 @@ function App({ client }: any) {
               summary: "",
               year: 0,
               tags: [],
-              inputTags: []
+              inputTags: [],
+              pdf: null
             }
             setEditData(emptyArticleData);
           }} variant="primary">+</Button>

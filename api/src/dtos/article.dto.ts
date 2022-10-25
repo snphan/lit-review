@@ -19,6 +19,10 @@ export class CreateArticleDto implements Partial<ArticleEntity> {
   @Field()
   year: number;
 
-  @Field(() => [Int], {nullable: true}) 
+  @Field(() => [Int], { nullable: true })
   inputTags: number[];
+
+  @Field(() => [Int], { nullable: true })
+  pdf: number[];
+
 }

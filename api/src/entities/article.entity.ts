@@ -39,6 +39,10 @@ export class ArticleEntity extends BaseEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Column({ type: "int", nullable: true, array: true })
+  @Field(() => [Int], { nullable: true })
+  pdf: number[];
+
   @OneToMany(() => ArticleTag, at => at.tag, { onDelete: "CASCADE" })
   tagConnection: Promise<ArticleTag[]>
 
