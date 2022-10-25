@@ -168,6 +168,24 @@ export function EditModal({ editData, show, handleClose, allTags, setEditData, s
         setSavedText("Saved...");
         handleClose(true);
       }
+    } else if ((event.ctrlKey || event.metaKey) && charCode === '5') {
+      event.preventDefault();
+      onBlockClick("header-five");
+    } else if ((event.ctrlKey || event.metaKey) && charCode === '4') {
+      event.preventDefault();
+      onBlockClick("header-four");
+    } else if ((event.ctrlKey || event.metaKey) && charCode === '3') {
+      event.preventDefault();
+      onBlockClick("header-three");
+    } else if ((event.ctrlKey || event.metaKey) && charCode === '2') {
+      event.preventDefault();
+      onBlockClick("header-two");
+    } else if ((event.ctrlKey || event.metaKey) && charCode === '1') {
+      event.preventDefault();
+      onBlockClick("header-one");
+    } else if ((event.ctrlKey || event.metaKey) && event.shiftKey && charCode === '8') {
+      event.preventDefault();
+      onBlockClick("unordered-list-item");
     } else if ((event.ctrlKey || event.metaKey) && charCode === 'c') {
       // alert("CTRL+C Pressed");
     } else if ((event.ctrlKey || event.metaKey) && charCode === 'v') {
