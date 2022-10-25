@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tag, TagData } from './Tag';
 import { Button } from 'react-bootstrap';
+import '../App.css';
 
 export interface ArticleData {
   id: string;
@@ -17,7 +18,7 @@ export function Article(props: any) {
   const article: ArticleData = props.article;
 
   return (
-    <tr onClick={() => {
+    <tr onDoubleClick={() => {
       props.setEditData(article);
       props.handleShow();
     }}>
