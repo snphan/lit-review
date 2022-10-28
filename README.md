@@ -1,6 +1,7 @@
 # Lit Review An App To Streamline Lit-Review Summaries
 
-A template to work with Postgres, Express, React, Node.js and GraphQL
+A function application to store summaries as you do a Literature Review. You can make custom tags that you can filter by. 
+Supports PDF attachments and filtering by fields.
 
 # Quickstart
 
