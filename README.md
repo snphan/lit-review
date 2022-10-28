@@ -3,6 +3,8 @@
 A function application to store summaries as you do a Literature Review. You can make custom tags that you can filter by. 
 Supports PDF attachments and filtering by fields.
 
+Contains a Rich-Text Editor powered by Draft.js with shortcut keys.
+
 # Quickstart
 
 1. Install docker https://docs.docker.com/get-docker/
