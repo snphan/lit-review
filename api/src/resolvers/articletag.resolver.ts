@@ -151,7 +151,7 @@ export class ArticleTagResolver {
         'year',
         'summary',
       ], // use select here because the pdfs are way too bulky.
-    })).sort((a, b) => a.id - b.id);
+    })).sort((a, b) => b.id - a.id);
     return findArticles;
   }
 
